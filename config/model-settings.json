@@ -1,0 +1,16 @@
+{
+  "model": "claude-sonnet-5-5",
+  "effortLevel": "high",
+  "availableModels": [
+    "claude-sonnet-5-5"
+  ],
+  "autoMemoryEnabled": false,
+  "env": {
+    "CLAUDE_CODE_EFFORT_LEVEL": "high",
+    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1",
+    "DISABLE_AUTOUPDATER": "1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5-5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet-5-5",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-sonnet-5-5"
+  }
+}

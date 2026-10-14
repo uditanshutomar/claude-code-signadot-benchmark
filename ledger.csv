@@ -1,0 +1,1 @@
+run_id,task,arm,rep,started_utc,ended_utc,duration_ms,cost_usd,num_turns,model,effort,claude_code_version,permission_mode,hotrod_sha,skills_sha,session_id,declared_done,initial_verdict,rework_rounds,rework_duration_ms,rework_cost_usd,final_verdict,skill_invoked,cli_fallback,services_touched,first_break_seen_utc,notes

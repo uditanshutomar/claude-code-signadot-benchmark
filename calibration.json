@@ -1,0 +1,71 @@
+{
+  "description": "Grader check before run 1: each control graded by grade.sh with the files hashed below, which are the frozen grader files.",
+  "grader_sha256": {
+    "grade.sh": "0cf9a58c183c308cc1817c21e09e7e84d0a16aeb62872033aacfde984b546af4",
+    "grader/grade.py": "43a4751c851e4c3a261942d2962cc3454e9249edc111db8c360d2bea9aa83575",
+    "grader/check.mjs": "74e8084214784832b5c4eba1351148041a9dc0e49263b47a610dcfaf2fc3e89e",
+    "grader/parse.mjs": "3d471fc316cc7c125595cbe77cf69f70292868a861a8a99e9c88f3e1ea4442ee",
+    "config/pins.json": "515eb0ecb672d2ec9ef9824f3bae2b6e567ddd4ac61b9dd1b41f95759717c0a1",
+    "scripts/setup-only.py": "820abaca597c344cb9994dad8166af59466f3c87e9e374f5eac646c625f73c93",
+    "scripts/start-setup-worker.sh": "dd0ddd256e6e64d67e261a326f11cacf70016f4ef96f478edeb70387efd5a7ba",
+    "scripts/configure-worker.sh": "2cf1341290e9b0c3f9583e96c3401cd5a7bbfc67cd530d501e8e5168e8694a84",
+    "config/known-browser-errors.json": "433e6f52253a7b08014524c0e2a059b7e097215210a3a71db059cc023e5065fc"
+  },
+  "controls": [
+    {
+      "control": "check01",
+      "task": "t1",
+      "input": "unmodified repository",
+      "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "FAIL",
+      "result": "FAIL",
+      "reason": "location contract uses digit-string locID and name in id",
+      "graded_utc": "2026-10-14T09:46:16Z",
+      "cleanup": true
+    },
+    {
+      "control": "check02",
+      "task": "t1",
+      "input": "reference solution",
+      "diff_sha256": "cb623e11573c0f6723c63538a1a104c10a37c5649fa592ab2af87d88a3eb26c5",
+      "expected": "PASS",
+      "result": "PASS",
+      "reason": "",
+      "graded_utc": "2026-10-14T09:51:12Z",
+      "cleanup": true
+    },
+    {
+      "control": "check03",
+      "task": "t2",
+      "input": "unmodified repository",
+      "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "FAIL",
+      "result": "FAIL",
+      "reason": "location GET ride-history is implemented",
+      "graded_utc": "2026-10-14T09:55:16Z",
+      "cleanup": true
+    },
+    {
+      "control": "check04",
+      "task": "t2",
+      "input": "reference solution",
+      "diff_sha256": "81bffdf75f6d2a3a0796de15d23e05388b7788f17e264c2d92fefd431339c020",
+      "expected": "PASS",
+      "result": "PASS",
+      "reason": "",
+      "graded_utc": "2026-10-14T09:59:58Z",
+      "cleanup": true
+    },
+    {
+      "control": "check08",
+      "task": "t2",
+      "input": "a Task 2 smoke-run diff that shows the fare in the ETA countdown but not in the arrival message",
+      "diff_sha256": "83b9ab76e5d718f3fe82e326f93a28e69315749387f84ceec0d9164a1c4cc9c7",
+      "expected": "PASS",
+      "result": "PASS",
+      "reason": "",
+      "graded_utc": "2026-10-14T10:04:49Z",
+      "cleanup": true
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+diff --git a/services/driver/consumer.go b/services/driver/consumer.go
+index e314ebb..13ab3c0 100644
+--- a/services/driver/consumer.go
++++ b/services/driver/consumer.go
+@@ -4,6 +4,7 @@ import (
+ 	"context"
+ 	"encoding/json"
+ 	"fmt"
++	"math"
+ 	"time"
+ 
+ 	"github.com/dnwe/otelsarama"
+@@ -171,6 +172,6 @@ func (consumer *Consumer) processDispatchRequest(msg *sarama.ConsumerMessage) {
+ 		ID:        fmt.Sprintf("req-%d-dispatched-driver", reqContext.ID),
+ 		Timestamp: time.Now(),
+ 		Context:   notificationCtx,
+-		Body:      fmt.Sprintf("Driver %s arriving in %s", bestDriver.DriverID, bestDriver.ETA.String()),
++		Body:      fmt.Sprintf("Driver %s arriving in %s; fare $%.2f", bestDriver.DriverID, bestDriver.ETA.String(), math.Max(3.50, 1.50*bestDriver.ETA.Minutes())),
+ 	})
+ }
+diff --git a/services/frontend/react_app/src/components/features/rideHistory.tsx b/services/frontend/react_app/src/components/features/rideHistory.tsx
+new file mode 100644
+index 0000000..7e55752
+--- /dev/null
++++ b/services/frontend/react_app/src/components/features/rideHistory.tsx
+@@ -0,0 +1,21 @@
++import {useEffect, useState} from 'react';
++import {Card, CardHeader, CardBody, Heading, Table, Thead, Tbody, Tr, Th, Td, Text} from '@chakra-ui/react';
++
++type Ride = {id: number, pickup: string, dropoff: string, requestTime: string, driverPlate: string, fare: number};
++export async function historyRequest(method: string, data?: object) {
++    const response = await fetch('/ride-history', {method, headers: {'Content-Type': 'application/json'}, body: data ? JSON.stringify(data) : undefined});
++    if (!response.ok) throw new Error(`Ride history: ${response.status}`);
++    return response.json();
++}
++export function RideHistory({revision}: {revision: number}) {
++    const [history, setHistory] = useState<{rides: Ride[], total: number}>({rides: [], total: 0});
++    const [error, setError] = useState(false);
++    useEffect(() => {
++        let active = true;
++        historyRequest('GET').then(data => {if (active) {setHistory(data); setError(false);}}).catch(() => {if (active) setError(true);});
++        return () => {active = false;};
++    }, [revision]);
++    return <Card maxW={600}><CardHeader><Heading size="md">Ride History</Heading><Text>Total rides: {history.total}</Text></CardHeader>
++        <CardBody>{error ? <Text>Could not load ride history</Text> : <Table><Thead><Tr><Th>Pickup</Th><Th>Dropoff</Th><Th>Time</Th><Th>Plate</Th><Th>Fare</Th></Tr></Thead>
++        <Tbody>{history.rides.map(ride => <Tr key={ride.id}><Td>{ride.pickup}</Td><Td>{ride.dropoff}</Td><Td>{new Date(ride.requestTime).toLocaleString()}</Td><Td>{ride.driverPlate || 'Pending'}</Td><Td>{ride.driverPlate ? `$${Number(ride.fare).toFixed(2)}` : 'Pending'}</Td></Tr>)}</Tbody></Table>}</CardBody></Card>;
++}
+diff --git a/services/frontend/react_app/src/hooks/useGetRequestArrival.tsx b/services/frontend/react_app/src/hooks/useGetRequestArrival.tsx
+index 159259d..cc7c6ec 100644
+--- a/services/frontend/react_app/src/hooks/useGetRequestArrival.tsx
++++ b/services/frontend/react_app/src/hooks/useGetRequestArrival.tsx
+@@ -7,6 +7,7 @@ export const useGetRequestArrival = (logs: Log[]) => {
+     const [driverDetails, setDriverDetails] = useState({
+         name: "",
+         plate: "",
++        fare: undefined as number | undefined,
+     });
+ 
+     const parseDriverLogService = (entry: LogEntry) => {
+@@ -66,9 +67,11 @@ export const useGetRequestArrival = (logs: Log[]) => {
+             return e.status.match(/Driver\s+(.*?)\s+arriving/)
+         }).find(e => e !== null);
+ 
++        const fareMatch = driverEntries.map(e => e.status.match(/fare \$([0-9]+(?:\.[0-9]+)?)/)).find(Boolean);
+         setDriverDetails({
+             name: faker.person.fullName(),
+             plate: plate && plate.length > 1 ? plate[1] : "Unknown",
++            fare: fareMatch ? Number(fareMatch[1]) : undefined,
+         });
+         setDriverArrival(parsedTime);
+     }, [logs]);
+@@ -77,5 +80,6 @@ export const useGetRequestArrival = (logs: Log[]) => {
+     return {
+         driverArrival,
+         driverDetails,
++        requestID: logs[0]?.requestID,
+     };
+ };
+diff --git a/services/frontend/react_app/src/pages/home.tsx b/services/frontend/react_app/src/pages/home.tsx
+index 423bac0..dd4a21d 100644
+--- a/services/frontend/react_app/src/pages/home.tsx
++++ b/services/frontend/react_app/src/pages/home.tsx
+@@ -1,3 +1,4 @@
++import {RideHistory, historyRequest} from "../components/features/rideHistory.tsx";
+ import {MainLayout} from "../components/layouts";
+ import {
+     Box,
+@@ -27,11 +28,11 @@ import {NotificationResponse} from "../types/notifications.ts";
+ import {useGetRequestArrival} from "../hooks/useGetRequestArrival.tsx";
+ import Countdown, {CountdownRenderProps} from "react-countdown";
+ 
+-const countdownRenderer = ({minutes, seconds, driverName, driverPlate, props }: CountdownRenderProps & { driverName: string, driverPlate: string }) => {
++const countdownRenderer = ({minutes, seconds, driverName, driverPlate, fare, props }: CountdownRenderProps & { driverName: string, driverPlate: string, fare?: number }) => {
+     if (minutes === 0 && seconds === 0) {
+-        return <Text>{driverName} arrived</Text>;
++        return <Text>{driverName} arrived{fare !== undefined ? ` • Fare $${fare.toFixed(2)}` : ""}</Text>;
+     } else {
+-        return <Text as="b">The driver {driverName} ({driverPlate}) will arrive in {props.overtime ? "-" : ""}{minutes.toString().padStart(2, "0")}:{seconds.toString().padStart(2, "0")}</Text>;
++        return <Text as="b">The driver {driverName} ({driverPlate}) will arrive in {props.overtime ? "-" : ""}{minutes.toString().padStart(2, "0")}:{seconds.toString().padStart(2, "0")}{fare !== undefined ? ` • Fare $${fare.toFixed(2)}` : ""}</Text>;
+     }
+ };
+ 
+@@ -44,6 +45,19 @@ export const HomePage = () => {
+     const {logs, addNewLog, addErrorEntry, addInformationEntry} = useLogs();
+     const lastRequestedDrive = useGetRequestArrival(logs);
+ 
++    const [historyIds, setHistoryIds] = useState<Record<number, number>>({});
++    const updatedHistory = useRef(new Set<number>());
++    const [historyRevision, setHistoryRevision] = useState(0);
++    useEffect(() => {
++        const requestID = lastRequestedDrive.requestID;
++        const {plate, fare} = lastRequestedDrive.driverDetails;
++        if (requestID === undefined || fare === undefined || !historyIds[requestID] || updatedHistory.current.has(requestID)) return;
++        updatedHistory.current.add(requestID);
++        historyRequest('PATCH', {id: historyIds[requestID], driverPlate: plate, fare})
++            .then(() => setHistoryRevision(x => x + 1))
++            .catch(() => updatedHistory.current.delete(requestID));
++    }, [historyIds, lastRequestedDrive]);
++
+     const logsModal = useDisclosure();
+     const toast = useToast();
+ 
+@@ -127,6 +141,9 @@ export const HomePage = () => {
+ 
+         try {
+             await apiPost<{}>('/dispatch', data, {"baggage": `session=${sessionID}, request=${requestID}`});
++            const ride = await historyRequest('POST', {pickup: pickupLocation!.name, dropoff: dropoffLocation!.name});
++            setHistoryIds(ids => ({...ids, [requestID]: ride.id}));
++            setHistoryRevision(x => x + 1);
+         } catch (e) {
+             addErrorEntry(requestID, {
+                 status: 'Error requesting a ride to frontend API',
+@@ -201,10 +218,12 @@ export const HomePage = () => {
+                                     ...props,
+                                     driverName: lastRequestedDrive.driverDetails.name,
+                                     driverPlate: lastRequestedDrive.driverDetails.plate,
++                                    fare: lastRequestedDrive.driverDetails.fare,
+                                 })}
+                                 overtime={lastRequestedDrive.driverArrival < 0}
+                             />
+                         </HStack>}
++                    <RideHistory revision={historyRevision}/>
+                 </Stack>
+                 <Stack flexGrow={1} justifyContent='space-between' w='50%' h='100%' maxH={'900px'}>
+                     <div className={`${styles.drawer} ${logsModal.isOpen ? styles.open : ''}`}>
+diff --git a/services/frontend/ride_history.go b/services/frontend/ride_history.go
+new file mode 100644
+index 0000000..53377d6
+--- /dev/null
++++ b/services/frontend/ride_history.go
+@@ -0,0 +1,28 @@
++package frontend
++
++import (
++	"github.com/signadot/hotrod/pkg/config"
++	"github.com/signadot/hotrod/pkg/tracing"
++	"io"
++	"net/http"
++)
++
++func (s *Server) rideHistory(w http.ResponseWriter, r *http.Request) {
++	req, err := http.NewRequestWithContext(r.Context(), r.Method, "http://"+config.GetLocationAddr()+"/ride-history"+"?"+r.URL.RawQuery, r.Body)
++	if err != nil {
++		http.Error(w, "invalid history request", 400)
++		return
++	}
++	req.Header.Set("Content-Type", r.Header.Get("Content-Type"))
++	req.Header.Set("Accept", "application/json")
++	client := tracing.NewHTTPClient(s.tracer)
++	resp, err := client.Client.Do(req)
++	if err != nil {
++		http.Error(w, "history service unavailable", 502)
++		return
++	}
++	defer resp.Body.Close()
++	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
++	w.WriteHeader(resp.StatusCode)
++	io.Copy(w, resp.Body)
++}
+diff --git a/services/frontend/server.go b/services/frontend/server.go
+index e4609b3..aaa6ece 100644
+--- a/services/frontend/server.go
++++ b/services/frontend/server.go
+@@ -97,6 +97,7 @@ func (s *Server) Run() error {
+ func (s *Server) createServeMux() http.Handler {
+ 	mux := tracing.NewServeMux(true, s.tracer, s.logger)
+ 	p := path.Join("/", s.basepath)
++	mux.Handle(path.Join(p, "/ride-history"), http.HandlerFunc(s.rideHistory))
+ 	mux.Handle(path.Join(p, "/dispatch"), http.HandlerFunc(s.dispatch))
+ 	mux.Handle(path.Join(p, "/notifications"), http.HandlerFunc(s.notifications))
+ 	mux.Handle(path.Join(p, "/debug/vars"), expvar.Handler())       // expvar
+diff --git a/services/location/ride_history.go b/services/location/ride_history.go
+new file mode 100644
+index 0000000..c2db98a
+--- /dev/null
++++ b/services/location/ride_history.go
+@@ -0,0 +1,98 @@
++package location
++
++import (
++	"database/sql"
++	"encoding/json"
++	"net/http"
++	"time"
++)
++
++type RideHistory struct {
++	ID          int64     `json:"id"`
++	Pickup      string    `json:"pickup"`
++	Dropoff     string    `json:"dropoff"`
++	RequestTime time.Time `json:"requestTime"`
++	DriverPlate string    `json:"driverPlate"`
++	Fare        float64   `json:"fare"`
++}
++
++func (s *Server) rideHistory(w http.ResponseWriter, r *http.Request) {
++	ctx := r.Context()
++	_, err := s.database.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS ride_history (
++ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
++ pickup VARCHAR(255) NOT NULL, dropoff VARCHAR(255) NOT NULL,
++ request_time DATETIME(6) NOT NULL, driver_plate VARCHAR(255) NOT NULL DEFAULT '',
++ fare DECIMAL(12,2) NOT NULL DEFAULT 0)`)
++	if err != nil {
++		http.Error(w, "could not prepare ride history", 500)
++		return
++	}
++	w.Header().Set("Content-Type", "application/json")
++	switch r.Method {
++	case http.MethodGet:
++		rows, err := s.database.db.QueryContext(ctx, "SELECT id,pickup,dropoff,request_time,driver_plate,fare FROM ride_history ORDER BY id DESC")
++		if err != nil {
++			http.Error(w, "could not list history", 500)
++			return
++		}
++		defer rows.Close()
++		rides := []RideHistory{}
++		for rows.Next() {
++			var ride RideHistory
++			if err = rows.Scan(&ride.ID, &ride.Pickup, &ride.Dropoff, &ride.RequestTime, &ride.DriverPlate, &ride.Fare); err != nil {
++				http.Error(w, "could not read history", 500)
++				return
++			}
++			rides = append(rides, ride)
++		}
++		if rows.Err() != nil {
++			http.Error(w, "could not read history", 500)
++			return
++		}
++		json.NewEncoder(w).Encode(map[string]any{"rides": rides, "total": len(rides)})
++	case http.MethodPost:
++		var ride RideHistory
++		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192)).Decode(&ride) != nil || ride.Pickup == "" || ride.Dropoff == "" {
++			http.Error(w, "pickup and dropoff are required", 400)
++			return
++		}
++		ride.RequestTime = time.Now().UTC()
++		result, err := s.database.db.ExecContext(ctx, "INSERT INTO ride_history(pickup,dropoff,request_time) VALUES(?,?,?)", ride.Pickup, ride.Dropoff, ride.RequestTime)
++		if err != nil {
++			http.Error(w, "could not create history", 500)
++			return
++		}
++		ride.ID, err = result.LastInsertId()
++		if err != nil {
++			http.Error(w, "could not read history id", 500)
++			return
++		}
++		w.WriteHeader(http.StatusCreated)
++		json.NewEncoder(w).Encode(ride)
++	case http.MethodPatch:
++		var ride RideHistory
++		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192)).Decode(&ride) != nil || ride.ID <= 0 || ride.DriverPlate == "" || ride.Fare < 0 {
++			http.Error(w, "id, plate and nonnegative fare required", 400)
++			return
++		}
++		var exists int
++		err = s.database.db.QueryRowContext(ctx, "SELECT 1 FROM ride_history WHERE id=?", ride.ID).Scan(&exists)
++		if err == sql.ErrNoRows {
++			http.Error(w, "ride not found", 404)
++			return
++		}
++		if err != nil {
++			http.Error(w, "could not read history", 500)
++			return
++		}
++		_, err = s.database.db.ExecContext(ctx, "UPDATE ride_history SET driver_plate=?,fare=? WHERE id=?", ride.DriverPlate, ride.Fare, ride.ID)
++		if err != nil {
++			http.Error(w, "could not update history", 500)
++			return
++		}
++		json.NewEncoder(w).Encode(map[string]bool{"updated": true})
++	default:
++		w.Header().Set("Allow", "GET, POST, PATCH")
++		http.Error(w, "method not allowed", 405)
++	}
++}
+diff --git a/services/location/server.go b/services/location/server.go
+index b93f68b..d024fcf 100644
+--- a/services/location/server.go
++++ b/services/location/server.go
+@@ -72,6 +72,7 @@ func (s *Server) Run() error {
+ 
+ func (s *Server) createServeMux() http.Handler {
+ 	mux := tracing.NewServeMux(false, s.tracerProvider, s.logger)
++	mux.Handle("/ride-history", http.HandlerFunc(s.rideHistory))
+ 	mux.Handle("GET /locations", http.HandlerFunc(s.listLocations))
+ 	mux.Handle("GET /location", http.HandlerFunc(s.getLocation))
+ 	mux.Handle("POST /location", http.HandlerFunc(s.createLocation))

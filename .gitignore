@@ -1,0 +1,21 @@
+work/
+tools/node_modules/
+private/
+artifacts/
+__pycache__/
+*.env
+
+runs/*/grade-*/
+runs/*/latest-grade.json
+
+# Private originals may contain model/tool content. Publish reviewed copies separately.
+runs/*/round-*/
+runs/*/run.json
+runs/*/reviewed-run.json
+runs/*/transcript-review.json
+
+# Internal working notes, not part of the protocol.
+notes/
+preflight/
+# Raw runs stay private; redacted copies are published under results/.
+runs/

@@ -1,0 +1,16 @@
+name: ctbench-setup-check
+spec:
+  cluster: minikube
+  description: Temporary benchmark setup routing check
+  ttl:
+    duration: 30m
+    offsetFrom: createdAt
+  forks:
+    - forkOf:
+        kind: Deployment
+        namespace: ctbench-hotrod
+        name: frontend
+      customizations:
+        env:
+          - name: FRONTEND_TITLE_SUFFIX
+            value: ctbench-routing-check

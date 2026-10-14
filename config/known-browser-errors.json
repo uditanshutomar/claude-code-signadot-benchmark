@@ -1,0 +1,10 @@
+{
+  "base_sha": "b16178651580a8ba3ceb45ac7c59f4579611b0b3",
+  "errors": [
+    {
+      "message": "Cannot read properties of null (reading 'removeLayer')",
+      "stack_contains": "._clearLines",
+      "reason": "Existing Leaflet routing callback after selecting locations and immediately resetting the form on dispatch. Reproduced on the unmodified baseline during calibration."
+    }
+  ]
+}

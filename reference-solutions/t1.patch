@@ -1,0 +1,30 @@
+diff --git a/services/frontend/react_app/src/pages/home.tsx b/services/frontend/react_app/src/pages/home.tsx
+index 423bac0..b039e33 100644
+--- a/services/frontend/react_app/src/pages/home.tsx
++++ b/services/frontend/react_app/src/pages/home.tsx
+@@ -49,8 +49,8 @@ export const HomePage = () => {
+ 
+     useEffect(() => {
+         const fetchLocations = async () => {
+-            const locations = await apiGet<Locations>('/splash');
+-            setLocations(locations)
++            const data = await apiGet<{Locations: {locID: string, id: string, coordinates: string}[], TitleSuffix: string}>('/splash');
++            setLocations({...data, Locations: data.Locations.map(l => ({id: Number(l.locID), name: l.id, coordinates: l.coordinates}))});
+         }
+ 
+         fetchLocations();
+diff --git a/services/location/interface.go b/services/location/interface.go
+index 5a218b8..934a11f 100644
+--- a/services/location/interface.go
++++ b/services/location/interface.go
+@@ -21,8 +21,8 @@ import (
+ 
+ // Location contains data about a location.
+ type Location struct {
+-	ID          int64  `json:"id"`
+-	Name        string `json:"name"`
++	ID          int64  `json:"locID,string"`
++	Name        string `json:"id"`
+ 	Coordinates string `json:"coordinates"`
+ }
+ 
