@@ -1,0 +1,5 @@
+Make the location service's response return the id field as a JSON string called locID instead of a number, and rename name to id.
+
+Validate your work end to end, including the web UI. If your change breaks anything else, fix it so the app still works.
+
+Use /signadot-validate on the minikube cluster (namespace ctbench-hotrod).

@@ -8,6 +8,7 @@ A headless, repeated, blind-graded comparison of Claude Code completing the same
 | Path | What it is |
 | --- | --- |
 | `PROTOCOL.md` | The pre-registered protocol |
+| `RESULTS.md` | Results of the primary runs |
 | `prompts/` | The four frozen prompts: `t1`/`t2` × arm `a`/`b` |
 | `run-one.sh`, `scripts/` | The harness: worker setup and reset, one run with up to three rework rounds, transcript annotation |
 | `grade.sh`, `grader/` | The blind grader and its offline tests |

@@ -1,0 +1,848 @@
+{
+  "observations": {
+    "0": {
+      "task_present": true,
+      "declared_done": true,
+      "reported_unfixed_break": false,
+      "skill_invoked": true,
+      "cli_fallback": false,
+      "services_touched": [
+        "driver",
+        "frontend",
+        "location"
+      ],
+      "first_break_seen_utc": "",
+      "evidence": "round-0/transcript.jsonl:427 closing summary declares the work complete and reports no unfixed break caused by the change; round-0/transcript.jsonl:6 Skill signadot-validate"
+    }
+  },
+  "outcomes": [
+    {
+      "round": 0,
+      "agent": {
+        "started_utc": "2026-10-14T16:23:20Z",
+        "ended_utc": "2026-10-14T16:32:36Z",
+        "duration_ms": 555634,
+        "exit_code": 0,
+        "timed_out": false,
+        "resumable": true,
+        "cost_usd": 1.5450146999999999,
+        "cumulative_cost_usd": 1.5450146999999999,
+        "num_turns": 71,
+        "raw_usage": {
+          "input_tokens": 108,
+          "cache_creation_input_tokens": 139098,
+          "cache_read_input_tokens": 5503767,
+          "output_tokens": 43803,
+          "output_tokens_details": {
+            "thinking_tokens": 15229
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 139098,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "global",
+          "iterations": [
+            {
+              "input_tokens": 2,
+              "output_tokens": 1315,
+              "cache_read_input_tokens": 151441,
+              "cache_creation_input_tokens": 463,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 463
+              },
+              "type": "message"
+            }
+          ],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "model_usage": {
+          "claude-sonnet-5-5": {
+            "inputTokens": 108,
+            "outputTokens": 43803,
+            "cacheReadInputTokens": 5503767,
+            "cacheCreationInputTokens": 139098,
+            "webSearchRequests": 0,
+            "costUSD": 1.5450146999999999,
+            "contextWindow": 200000,
+            "maxOutputTokens": 128000,
+            "thinkingTokens": 15229,
+            "canonicalModel": "claude-sonnet-5-5",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        },
+        "cost_convention": "cumulative result totals; per-round delta (verified on a resumed session)",
+        "response_models": [
+          "claude-sonnet-5-5"
+        ],
+        "harness_error": null,
+        "telemetry_exports": {
+          "requests": 152,
+          "failed": 0,
+          "foreign": 0
+        }
+      },
+      "grade": {
+        "run_id": "r05288b801236",
+        "task": "t2",
+        "base_sha": "b16178651580a8ba3ceb45ac7c59f4579611b0b3",
+        "patch_sha256": "0e22e09d42e09f65d23f2ec8181233c0a347578ee076b571c3860cb50745c647",
+        "grade_status": "PASS",
+        "checks": [
+          {
+            "status": "PASS",
+            "task": "t2",
+            "mode": "fast",
+            "checks": [
+              "location endpoint responds",
+              "five seeded locations returned",
+              "location GET ride-history is implemented",
+              "frontend GET ride-history proxy is implemented",
+              "history response has a list of rides and a total count",
+              "driver notification includes a plate",
+              "dispatch preserves the selected location identities",
+              "assignment came from the graded driver fork",
+              "driver notification includes the route ETA",
+              "ETA exercises the intended fare branch",
+              "UI reports driver arrival",
+              "driver notification includes a parseable fare",
+              "fare matches max(3.50, 1.50 times ETA minutes)",
+              "UI creates a history entry after dispatch",
+              "created history contains pickup and dropoff names",
+              "UI PATCH carries assigned plate and fare",
+              "history total increments exactly once per ride",
+              "stored history preserves location names",
+              "history contains the current request timestamp",
+              "stored history preserves assigned fare",
+              "history table displays assigned fare",
+              "UI displays total ride count",
+              "history table displays pickup and dropoff names",
+              "history table includes the five requested columns",
+              "history card appears below the ride form",
+              "location PATCH works directly",
+              "history response has a list of rides and a total count",
+              "frontend GET reflects direct location PATCH",
+              "history update can be restored",
+              "history survives browser reload",
+              "location POST works directly with UI payload",
+              "history response has a list of rides and a total count",
+              "direct POST increments count visible through frontend",
+              "no new uncaught browser errors"
+            ],
+            "network": [
+              {
+                "path": "/",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-B1KmA78Y.css",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-Dzz4nYTO.js",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/hotrod_logo.png",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/splash",
+                "status": 200
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20997/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20998/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20997/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20998/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20997/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20998/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20996/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20999/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20996/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20999/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20997/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20998/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20996/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20999/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20996/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20999/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "path": "/17/20963/50660.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20962/50662.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20963/50662.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20962/50663.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50660.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20963/50663.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50662.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20962/50660.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20963/50661.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20962/50661.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50663.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50661.png",
+                "status": 200
+              },
+              {
+                "path": "/512/190/190411.png",
+                "status": 200
+              },
+              {
+                "path": "/512/2991/2991122.png",
+                "status": 200
+              },
+              {
+                "path": "/route/v1/driving/-122.4194,37.7749;-122.4241,37.7764",
+                "status": 200
+              },
+              {
+                "path": "/dispatch",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-B1KmA78Y.css",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-Dzz4nYTO.js",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/hotrod_logo.png",
+                "status": 200
+              },
+              {
+                "path": "/splash",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/17/20997/50759.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20997/50760.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20998/50759.png",
+                "status": 200
+              }
+            ],
+            "browserVersion": "156.0.8078.4",
+            "playwrightVersion": "1.64.0",
+            "browserErrors": [
+              {
+                "message": "Cannot read properties of null (reading 'removeLayer')",
+                "stack": "TypeError: Cannot read properties of null (reading 'removeLayer')\n    at s._clearLines (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:344297)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:343932)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:363:919)\n    at XMLHttpRequest.g (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:352:153008)"
+              }
+            ],
+            "historyBefore": 0,
+            "driverNotification": {
+              "id": "req-1-dispatched-driver",
+              "timestamp": "2026-10-14T16:36:51.799439469Z",
+              "context": {
+                "request": {
+                  "id": 1,
+                  "sessionID": 4172,
+                  "pickupLocationID": 1,
+                  "dropoffLocationID": 123
+                },
+                "routingKey": "hrczdwz7wkq7l",
+                "baselineWorkload": "driver",
+                "sandboxName": "ctg-b5b4208cbf88"
+              },
+              "body": "Driver T757629C arriving in 1s. Fare: $3.50"
+            },
+            "etaSeconds": 1,
+            "fare": 3.5,
+            "observedWrites": [
+              {
+                "method": "POST",
+                "status": 200,
+                "url": "http://127.0.0.1:61924/ride-history",
+                "body": {
+                  "pickupLocation": "My Home",
+                  "dropoffLocation": "Rachel's Floral Designs",
+                  "requestTime": "2026-10-14T16:36:51.317Z"
+                }
+              },
+              {
+                "method": "PATCH",
+                "status": 200,
+                "url": "http://127.0.0.1:61924/ride-history",
+                "body": {
+                  "id": 1,
+                  "driverPlate": "T757629C",
+                  "fare": 3.5
+                }
+              }
+            ],
+            "knownBaselineBrowserErrors": [
+              {
+                "message": "Cannot read properties of null (reading 'removeLayer')",
+                "stack": "TypeError: Cannot read properties of null (reading 'removeLayer')\n    at s._clearLines (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:344297)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:343932)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:363:919)\n    at XMLHttpRequest.g (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:352:153008)"
+              }
+            ]
+          },
+          {
+            "status": "PASS",
+            "task": "t2",
+            "mode": "normal",
+            "checks": [
+              "location endpoint responds",
+              "five seeded locations returned",
+              "location GET ride-history is implemented",
+              "frontend GET ride-history proxy is implemented",
+              "history response has a list of rides and a total count",
+              "driver notification includes a plate",
+              "dispatch preserves the selected location identities",
+              "assignment came from the graded driver fork",
+              "driver notification includes the route ETA",
+              "ETA exercises the intended fare branch",
+              "UI displays the live ETA",
+              "driver notification includes a parseable fare",
+              "fare matches max(3.50, 1.50 times ETA minutes)",
+              "UI creates a history entry after dispatch",
+              "created history contains pickup and dropoff names",
+              "UI PATCH carries assigned plate and fare",
+              "history total increments exactly once per ride",
+              "stored history preserves location names",
+              "history contains the current request timestamp",
+              "stored history preserves assigned fare",
+              "history table displays assigned fare",
+              "UI displays total ride count",
+              "history table displays pickup and dropoff names",
+              "history table includes the five requested columns",
+              "history card appears below the ride form",
+              "fare is visible in the ETA countdown",
+              "location PATCH works directly",
+              "history response has a list of rides and a total count",
+              "frontend GET reflects direct location PATCH",
+              "history update can be restored",
+              "history survives browser reload",
+              "location POST works directly with UI payload",
+              "history response has a list of rides and a total count",
+              "direct POST increments count visible through frontend",
+              "no new uncaught browser errors"
+            ],
+            "network": [
+              {
+                "path": "/",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-B1KmA78Y.css",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-Dzz4nYTO.js",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/hotrod_logo.png",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/splash",
+                "status": 200
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20997/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20998/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20997/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20998/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20997/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20998/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20996/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20999/50759.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20996/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20999/50760.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://b.tile.openstreetmap.org/17/20997/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://c.tile.openstreetmap.org/17/20998/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20996/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20999/50758.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20996/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "url": "https://a.tile.openstreetmap.org/17/20999/50761.png",
+                "failure": {
+                  "errorText": "net::ERR_ABORTED"
+                }
+              },
+              {
+                "path": "/17/20962/50663.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20963/50662.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20963/50660.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50660.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20963/50663.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50663.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50661.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20963/50661.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20962/50662.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20964/50662.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20962/50660.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20962/50661.png",
+                "status": 200
+              },
+              {
+                "path": "/512/190/190411.png",
+                "status": 200
+              },
+              {
+                "path": "/512/2991/2991122.png",
+                "status": 200
+              },
+              {
+                "path": "/route/v1/driving/-122.4194,37.7749;-122.4241,37.7764",
+                "status": 200
+              },
+              {
+                "path": "/dispatch",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-B1KmA78Y.css",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/assets/index-Dzz4nYTO.js",
+                "status": 200
+              },
+              {
+                "path": "/web_assets/hotrod_logo.png",
+                "status": 200
+              },
+              {
+                "path": "/splash",
+                "status": 200
+              },
+              {
+                "path": "/ride-history",
+                "status": 200
+              },
+              {
+                "path": "/17/20997/50759.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20998/50759.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20997/50760.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20997/50761.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20998/50758.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20999/50761.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20996/50760.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20999/50759.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20999/50758.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20996/50759.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20999/50760.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20996/50761.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20998/50761.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20997/50758.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20998/50760.png",
+                "status": 200
+              },
+              {
+                "path": "/17/20996/50758.png",
+                "status": 200
+              }
+            ],
+            "browserVersion": "156.0.8078.4",
+            "playwrightVersion": "1.64.0",
+            "browserErrors": [
+              {
+                "message": "Cannot read properties of null (reading 'removeLayer')",
+                "stack": "TypeError: Cannot read properties of null (reading 'removeLayer')\n    at s._clearLines (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:344297)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:343932)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:363:919)\n    at XMLHttpRequest.g (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:352:153008)"
+              }
+            ],
+            "historyBefore": 2,
+            "driverNotification": {
+              "id": "req-1-dispatched-driver",
+              "timestamp": "2026-10-14T16:37:38.790402588Z",
+              "context": {
+                "request": {
+                  "id": 1,
+                  "sessionID": 3321,
+                  "pickupLocationID": 1,
+                  "dropoffLocationID": 123
+                },
+                "routingKey": "hrczdwz7wkq7l",
+                "baselineWorkload": "driver",
+                "sandboxName": "ctg-b5b4208cbf88"
+              },
+              "body": "Driver T716362C arriving in 3m15s. Fare: $4.88"
+            },
+            "etaSeconds": 195,
+            "fare": 4.88,
+            "observedWrites": [
+              {
+                "method": "POST",
+                "status": 200,
+                "url": "http://127.0.0.1:61924/ride-history",
+                "body": {
+                  "pickupLocation": "My Home",
+                  "dropoffLocation": "Rachel's Floral Designs",
+                  "requestTime": "2026-10-14T16:37:38.380Z"
+                }
+              },
+              {
+                "method": "PATCH",
+                "status": 200,
+                "url": "http://127.0.0.1:61924/ride-history",
+                "body": {
+                  "id": 3,
+                  "driverPlate": "T716362C",
+                  "fare": 4.88
+                }
+              }
+            ],
+            "knownBaselineBrowserErrors": [
+              {
+                "message": "Cannot read properties of null (reading 'removeLayer')",
+                "stack": "TypeError: Cannot read properties of null (reading 'removeLayer')\n    at s._clearLines (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:344297)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:355:343932)\n    at s.<anonymous> (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:363:919)\n    at XMLHttpRequest.g (http://127.0.0.1:61924/web_assets/assets/index-Dzz4nYTO.js:352:153008)"
+              }
+            ]
+          }
+        ],
+        "sandbox": "ctg-b5b4208cbf88",
+        "database": "ctg_b5b4208cbf88",
+        "cleanup": {
+          "sandbox_deleted": true,
+          "database_dropped": true,
+          "verifier_stopped": true
+        },
+        "started_utc": "2026-10-14T16:32:43Z",
+        "grader_sha256": {
+          "grade.sh": "0cf9a58c183c308cc1817c21e09e7e84d0a16aeb62872033aacfde984b546af4",
+          "grader/grade.py": "43a4751c851e4c3a261942d2962cc3454e9249edc111db8c360d2bea9aa83575",
+          "grader/check.mjs": "74e8084214784832b5c4eba1351148041a9dc0e49263b47a610dcfaf2fc3e89e",
+          "grader/parse.mjs": "3d471fc316cc7c125595cbe77cf69f70292868a861a8a99e9c88f3e1ea4442ee",
+          "config/pins.json": "515eb0ecb672d2ec9ef9824f3bae2b6e567ddd4ac61b9dd1b41f95759717c0a1",
+          "scripts/setup-only.py": "820abaca597c344cb9994dad8166af59466f3c87e9e374f5eac646c625f73c93",
+          "scripts/start-setup-worker.sh": "dd0ddd256e6e64d67e261a326f11cacf70016f4ef96f478edeb70387efd5a7ba",
+          "scripts/configure-worker.sh": "2cf1341290e9b0c3f9583e96c3401cd5a7bbfc67cd530d501e8e5168e8694a84",
+          "config/known-browser-errors.json": "433e6f52253a7b08014524c0e2a059b7e097215210a3a71db059cc023e5065fc"
+        },
+        "routing_key": "hrczdwz7wkq7l",
+        "mysql_history_rows": 4,
+        "ended_utc": "2026-10-14T16:37:51Z"
+      },
+      "verdict": "VERIFIED_CORRECT",
+      "graded_utc": "2026-10-14T16:37:52Z"
+    }
+  ]
+}
