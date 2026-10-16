@@ -1,0 +1,17 @@
+Implement a "Fare Estimate + Ride History" feature across 3 services:
+
+1. Driver service (services/driver/):
+- After finding the best driver, compute a fare from the route ETA ($1.50/minute, minimum $3.50)
+- Include the fare in the existing driver notification body so the frontend can parse it
+
+2. Location service (services/location/):
+- Add a ride_history table to MySQL: pickup location name, dropoff location name, request time, driver plate, and fare amount
+- Add GET /ride-history (returns list + total count), POST /ride-history (creates entry), and PATCH /ride-history (updates driver plate and fare after assignment)
+
+3. Frontend service (services/frontend/):
+- Proxy the ride-history endpoints to the location service
+- In the React UI, parse the fare from the driver notification and display it in the ETA countdown
+- Add a "Ride History" card below the ride form showing a table of past rides (pickup, dropoff, time, plate, fare) with a total count
+- After dispatching, create a ride-history entry. When the driver notification arrives with plate + fare, update the entry via PATCH
+
+Validate your work end to end, including the web UI. If your change breaks anything else, fix it so the app still works.
