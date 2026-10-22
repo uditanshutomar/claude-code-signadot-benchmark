@@ -1,77 +1,187 @@
-# Claude Code with and without a real environment
+# Claude Code with and without Signadot
 
-A headless, repeated, blind-graded comparison of Claude Code completing the same HotROD tasks with and without
-[Signadot](https://www.signadot.com/) sandboxes to verify in. The method is in [PROTOCOL.md](PROTOCOL.md).
+This repository holds a benchmark that compares Claude Code working on the same HotROD tasks with and without [Signadot](https://www.signadot.com/). Each run is headless, starts from a clean worker, and is graded by a script that never sees which side produced the change. Every run is here: its transcript, final diff, grader output and a row in the ledger.
 
-## Contents
+The protocol was committed before the first run, at `500a28f`. [PROTOCOL.md](PROTOCOL.md) describes it in full.
 
-| Path | What it is |
+## Results
+
+| | Task 1, without Signadot | Task 1, with Signadot | Task 2, without Signadot | Task 2, with Signadot |
+| --- | --- | --- | --- | --- |
+| Correct on the first try | 10/10 | 10/10 | 10/10 | 10/10 |
+| Time to a working change, median | 9.7 min | 7.5 min | 14.6 min | 13.7 min |
+| Cost per run, median | $0.49 | $0.69 | $1.33 | $1.56 |
+| Human hand-offs | 0 | 0 | 0 | 0 |
+
+- Every change worked, on both sides. No run declared done on a broken change.
+- On Task 1, the Signadot runs reached a verified change faster. We did not find a clear Task 2 timing difference.
+- On Task 1, 9 of the 10 runs without Signadot never saw a ride complete in their own testing, because HotROD's driver waits for Signadot's route server. Every Signadot run saw one complete.
+- The Signadot runs cost more, and their model calls generally carried more context.
+
+[RESULTS.md](RESULTS.md) has the full numbers and how each side validated its work.
+
+## The tasks
+
+Both sides get the same prompt. The Signadot side gets one extra sentence that names the skill and the cluster. The prompts are in [prompts/](prompts/).
+
+- **Task 1, a contract change.** Make the location service return its id as a JSON string called `locID` and rename `name` to `id`. The change compiles, and `go test ./...` passes without updating the consumers, because no test in the repository exercises the contract. The location and frontend tests skip without a live address.
+- **Task 2, a feature.** Add a fare estimate and ride history across the driver, location and frontend services, with a new MySQL table.
+
+Every prompt ends with the same instruction: "Validate your work end to end, including the web UI. If your change breaks anything else, fix it so the app still works."
+
+## How a run works
+
+`./run-one.sh <task> <arm> <rep>` runs one session from start to finish:
+
+1. It creates a fresh Docker Sandboxes worker, resets HotROD to the pinned commit, drops the `ride_history` table and deletes any Signadot sandboxes left from the previous run.
+2. On the Signadot side, it starts `signadot local connect` and waits until `signadot local status` passes.
+3. It runs `claude -p` with the pinned model and effort, a 60-minute limit and `stream-json` output, then saves the transcript and the final diff.
+4. It hands the diff to the grader. If the change fails, it resumes the same session with only the grader's output and grades again, up to three times.
+
+Every session sends its telemetry to CodeTelemetry, labelled with the side, the task and the phase, so sessions can be grouped and compared there.
+
+## How grading works
+
+`./grade.sh <run_id>` sees only an opaque run ID and the diff. It never learns which side made the change.
+
+It builds the diff at the pinned HotROD commit, deploys the result into a Signadot sandbox with its own database, and checks the task through the API. Then it drives the web UI with Playwright: it picks locations by name, dispatches a ride and waits for the driver to arrive. For Task 2 it also checks the fare in the countdown and the ride in the history table.
+
+Before the first run, the grader failed the unmodified app on both tasks and passed a hand-written solution for each. Those checks are in [calibration.json](calibration.json), and the solutions are in [reference-solutions/](reference-solutions/). [grader/README.md](grader/README.md) covers the details.
+
+## What's in this repository
+
+| Path | Contents |
 | --- | --- |
-| `PROTOCOL.md` | The pre-registered protocol |
-| `RESULTS.md` | Results of the primary and extension runs |
-| `prompts/` | The four frozen prompts: `t1`/`t2` × arm `a`/`b` |
-| `run-one.sh`, `scripts/` | The harness: worker setup and reset, one run with up to three rework rounds, transcript annotation |
-| `grade.sh`, `grader/` | The blind grader and its offline tests |
-| `reference-solutions/` | Hand-written solutions used to check the grader |
-| `calibration.json` | The grader check before run 1: baselines fail, references pass, with the grader file hashes |
-| `config/` | Pinned versions, model settings, the HotROD overlay and the one known baseline browser error |
-| `source-harness/` | The original interactive harness from [`signadot/examples`](https://github.com/signadot/examples/tree/main/closed-loop-comparison) this one is built from |
-| `ledger.csv` | One row per run, failures and harness errors included |
-| `results/` | Per-run transcripts (`stream-json`), final diffs and grader output |
+| [PROTOCOL.md](PROTOCOL.md) | The protocol, as committed before the first run |
+| [RESULTS.md](RESULTS.md) | Results and how each side validated its work |
+| [ledger.csv](ledger.csv) | One row per run, with the columns the protocol defines |
+| [results/](results/) | Each run's transcript, final diff, grader output and telemetry delivery log |
+| [prompts/](prompts/) | The four prompts: two tasks, two sides |
+| `run-one.sh`, [scripts/](scripts/) | The headless runner: worker setup and reset, one run with its rework rounds, transcript review and export |
+| `grade.sh`, [grader/](grader/) | The grader and its tests |
+| [reference-solutions/](reference-solutions/) | Hand-written solutions used to check the grader |
+| [calibration.json](calibration.json) | The grader check from before the first run |
+| [config/](config/) | Pinned versions, model settings and the HotROD overlay |
+| [source-harness/](source-harness/) | The interactive harness from [signadot/examples](https://github.com/signadot/examples/tree/main/closed-loop-comparison) that this one builds on |
 
-## Running it
+## Run it yourself
 
-The original runs used an Apple-silicon Mac. Workers are Linux ARM64 Docker Sandboxes VMs; on other hardware, use
-the matching CLI archive and record your own image and template IDs in `config/pins.json`. IDs below in angle
-brackets are values you record, not values to copy.
+The original runs used an Apple-silicon Mac, so the workers are Linux ARM64. On other hardware, use the matching Signadot CLI archive and record your own image and template IDs in `config/pins.json`. Values in angle brackets below are ones you record.
 
-**Host prerequisites:** Docker Desktop with Docker Sandboxes (`sbx` 0.48.0, logged in), minikube with the docker
-driver, kubectl, Helm, Node 22, Python 3.11+, git, and the Signadot CLI 1.8.0. A Signadot org with an API key and a
-cluster token, a Claude subscription, and a CodeTelemetry ingest key.
+### Prerequisites
 
-1. **HotROD.** `git clone https://github.com/signadot/hotrod work/hotrod`, check out `hotrod_sha` from
-   `config/pins.json`, run `make build GOOS=linux GOARCH=arm64` there, then
-   `docker build -t ctbench-hotrod:b16178651580 work/hotrod` and `minikube image load ctbench-hotrod:b16178651580`.
-   Record the image ID from `docker image inspect` as `hotrod_image_id`.
-2. **Cluster.** `kubectl --context minikube create namespace ctbench-hotrod`, then
-   `kubectl --context minikube apply -k config/hotrod`. Install the Signadot operator with Helm chart
-   `signadot/operator` 1.4.0 and your cluster token in secret `signadot/cluster-token` (key `token`). Register the
-   cluster as `minikube` and set `signadot_org` in `config/pins.json`.
-3. **Signadot CLI for the workers.** Download `signadot-cli_mcp_linux_arm64.tar.gz` and `checksums.txt` from the
-   [`signadot/cli` v1.8.0 release](https://github.com/signadot/cli/releases/tag/v1.8.0) into `artifacts/downloads/`
-   and check the SHA-256 against `signadot_linux_arm64_archive_sha256`.
-4. **Worker template.** `sbx create --name ctbench-setup-a --skills off claude <empty dir>`, run
-   `sbx exec -i ctbench-setup-a bash -s < scripts/prepare-worker.sh`, then
-   `sbx template save ctbench-setup-a ctbench-common:20261013`. Record the template's short ID from
-   `sbx template ls` as `common_worker_template_short_id`.
-5. **Grader workers**, from that template:
-   - `sbx create --name ctbench-grader-build --template ctbench-common:20261013 --skills off claude work/grading-source`
-     (no credentials; it builds each diff).
-   - `sbx create --name ctbench-setup-b --template ctbench-common:20261013 --skills off claude work/worker-b`,
-     extract the CLI archive into its `/usr/local/bin`, and write `~/.signadot/config.yaml` there with `org:` and
-     `api_key:`. `scripts/start-setup-worker.sh b` then connects it through `scripts/local-tunnel.py` and checks the
-     baseline.
-6. **Agent skills.** `git clone https://github.com/signadot/agent-skills ~/src/agent-skills` and check out
-   `agent-skills_sha`.
-7. **Host browser for the grader.** `npm ci --prefix tools` and `npx --prefix tools playwright install chromium`.
-8. **Private files** (mode 0600, never committed): `private/claude-subscription.env` containing
-   `CLAUDE_CODE_OAUTH_TOKEN=<token>`, `private/codetelemetry-ingest-key`, and `private/signadot-api-key`.
-9. **Freeze.** Commit, then write `private/protocol-freeze.json`:
+- Docker Desktop with Docker Sandboxes (`sbx` 0.48.0, logged in)
+- minikube with the docker driver, kubectl and Helm
+- Node 22, Python 3.11 or later, and git
+- The [Signadot CLI](https://www.signadot.com/docs/getting-started/installation/signadot-cli) 1.8.0
+- A Signadot account with an API key and a cluster token
+- A Claude subscription, and a CodeTelemetry ingest key
 
-   ```json
-   {"commit": "<git rev-parse HEAD>", "source_hashes": "<output of scripts/protocol.py source_hashes()>",
-    "approved": true, "cost_resume_reconciled": true, "telemetry_delivery_verified": true,
-    "smoke_evidence": {"t1-a": "runs/<id>/run.json", "t1-b": "runs/<id>/run.json",
-                       "t2-a": "runs/<id>/run.json", "t2-b": "runs/<id>/run.json"}}
-   ```
+### Set up HotROD and the cluster
 
-10. **Run.** `python3 scripts/run-order.py` prints the order. For each entry, write the one-use approval
-    `private/model-run-approval.json` as `{"mode": "primary", "task": "t1", "arm": "a", "rep": 1, "approved": true}`
-    and run `./run-one.sh t1 a 1 --mode primary --execute`. Without `--execute` it only prints the plan.
-11. **Review and publish.** Annotate each run with `scripts/annotate.py` (transcript observations with line
-    citations), then `python3 scripts/export_results.py` writes `results/` with credentials and home paths removed.
-    Review `results/` before committing it.
+Build HotROD at the pinned commit and load the image into minikube:
 
-`./grade.sh <run_id>` grades a diff on its own. Offline checks: `python3 -m unittest discover -s grader -p 'test_*.py'`,
-`(cd scripts && python3 -m unittest discover -p 'test_*.py')`, `node --test grader/parse.test.mjs` and
-`python3 scripts/verify-preparation.py`.
+```bash
+git clone https://github.com/signadot/hotrod work/hotrod
+git -C work/hotrod checkout b16178651580a8ba3ceb45ac7c59f4579611b0b3
+make -C work/hotrod build GOOS=linux GOARCH=arm64
+docker build -t ctbench-hotrod:b16178651580 work/hotrod
+minikube image load ctbench-hotrod:b16178651580
+```
+
+Deploy it into its own namespace:
+
+```bash
+kubectl --context minikube create namespace ctbench-hotrod
+kubectl --context minikube apply -k config/hotrod
+```
+
+Install the Signadot operator with the `signadot/operator` Helm chart, version 1.4.0, with your cluster token in the secret `signadot/cluster-token` under the key `token`. Register the cluster as `minikube`, and set `signadot_org` in `config/pins.json`.
+
+### Build the workers
+
+Download `signadot-cli_mcp_linux_arm64.tar.gz` and `checksums.txt` from the [Signadot CLI v1.8.0 release](https://github.com/signadot/cli/releases/tag/v1.8.0) into `artifacts/downloads/`, and check the archive against `signadot_linux_arm64_archive_sha256` in `config/pins.json`.
+
+Create the worker template:
+
+```bash
+sbx create --name ctbench-setup-a --skills off claude <empty directory>
+sbx exec -i ctbench-setup-a bash -s < scripts/prepare-worker.sh
+sbx template save ctbench-setup-a ctbench-common:20261013
+```
+
+Create the two grader workers from it. The build worker has no credentials:
+
+```bash
+sbx create --name ctbench-grader-build --template ctbench-common:20261013 --skills off claude work/grading-source
+sbx create --name ctbench-setup-b --template ctbench-common:20261013 --skills off claude work/worker-b
+```
+
+In `ctbench-setup-b`, extract the Signadot CLI into `/usr/local/bin` and write `~/.signadot/config.yaml` with your `org` and `api_key`. Then connect it to the cluster:
+
+```bash
+scripts/start-setup-worker.sh b
+```
+
+Clone the agent skills at the pinned commit, and install the browser the grader uses:
+
+```bash
+git clone https://github.com/signadot/agent-skills ~/src/agent-skills
+git -C ~/src/agent-skills checkout 3d7eee83830dd66a45cf80f7d85f8d9dd1c8f83b
+npm ci --prefix tools
+npx --prefix tools playwright install chromium
+```
+
+### Add your credentials
+
+Create these files with mode `0600`. They are ignored by git:
+
+- `private/claude-subscription.env`, containing `CLAUDE_CODE_OAUTH_TOKEN=<token>`
+- `private/codetelemetry-ingest-key`
+- `private/signadot-api-key`
+
+### Freeze the protocol and run
+
+Before the benchmark runs, do one smoke run of each task on each side. Approve it the same way as a benchmark run (below), with `"mode": "telemetry-smoke"`, and start it with `./run-one.sh t1 a 1 --mode telemetry-smoke --execute`. Each smoke run writes `runs/<id>/run.json`.
+
+Commit your setup, then record the freeze in `private/protocol-freeze.json`. `source_hashes` is the dictionary that `source_hashes()` in `scripts/protocol.py` returns, and `smoke_evidence` points at the four smoke runs. The runner refuses to start if the frozen files have changed since that commit:
+
+```json
+{"commit": "<git rev-parse HEAD>", "source_hashes": {"<path>": "<sha256>", "...": "..."},
+ "approved": true, "cost_resume_reconciled": true, "telemetry_delivery_verified": true,
+ "smoke_evidence": {"t1-a": "runs/<id>/run.json", "t1-b": "runs/<id>/run.json",
+                    "t2-a": "runs/<id>/run.json", "t2-b": "runs/<id>/run.json"}}
+```
+
+Print the run order, which alternates the two sides within each task, Task 1 first:
+
+```bash
+python3 scripts/run-order.py
+```
+
+For each entry, approve that one run in `private/model-run-approval.json`, for example `{"mode": "primary", "task": "t1", "arm": "a", "rep": 1, "approved": true}`, and start it:
+
+```bash
+./run-one.sh t1 a 1 --mode primary --execute
+```
+
+Without `--execute`, the runner prints its plan and stops.
+
+### Review and export
+
+Review each transcript with `scripts/annotate.py`, which records what the agent declared and saw, with line references. Then export the runs, with credentials and home paths removed:
+
+```bash
+python3 scripts/export_results.py
+```
+
+Look through `results/` before you commit it.
+
+## Check the code
+
+```bash
+python3 -m unittest discover -s grader -p 'test_*.py'
+(cd scripts && python3 -m unittest discover -p 'test_*.py')
+node --test grader/parse.test.mjs
+python3 scripts/verify-preparation.py
+```
