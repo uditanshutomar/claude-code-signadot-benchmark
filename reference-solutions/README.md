@@ -18,3 +18,7 @@ These are inputs for checking the grader before run 1, not benchmark results. Ea
 | check08 | `check08-fare-in-countdown-only.patch` | PASS |
 
 Results, input hashes and the grader file hashes are in `../calibration.json`.
+
+To rerun a control, create `runs/<id>/` with the patch as `submission.diff` (empty for an unmodified repository) and
+`submission.json` set to `{"task": "t1", "base_sha": "b16178651580a8ba3ceb45ac7c59f4579611b0b3"}` (or `"t2"`), then
+run `./grade.sh <id>`.
