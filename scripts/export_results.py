@@ -2,14 +2,16 @@
 """Copy each ledger run's transcripts, diffs and grader output to results/<run_id>/ with secrets removed."""
 import csv, json, pathlib, re, shutil, sys
 
-PATTERNS=[r'sk-ant-[A-Za-z0-9_-]+', r'cot_[A-Za-z0-9_-]+', r'(?i)(bearer\s+)[A-Za-z0-9._~+/=-]+']
+PATTERNS=[r'sk-ant-[A-Za-z0-9_-]+', r'cot_[A-Za-z0-9_-]+', r'gh[opusr]_[A-Za-z0-9]{36,}', r'(?i)(bearer\s+)[A-Za-z0-9._~+/=-]+']
 
 def redact(text, secrets, root):
     for secret in secrets:
         if secret: text=text.replace(secret,'[REDACTED]')
     for pattern in PATTERNS:
         text=re.sub(pattern,lambda m:(m.group(1) if m.groups() else '')+'[REDACTED]',text)
-    return text.replace(str(root)+'/','').replace(str(pathlib.Path.home()),'~')
+    home=str(pathlib.Path.home())
+    # Claude Code also encodes the home directory in project paths, e.g. -Users-<name>-src-...
+    return text.replace(str(root)+'/','').replace(home,'~').replace(home.replace('/','-'),'-Users-user')
 
 def export(root, run_id, secrets):
     source=root/'runs'/run_id;target=root/'results'/run_id

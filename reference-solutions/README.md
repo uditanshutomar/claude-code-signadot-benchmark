@@ -3,11 +3,11 @@
 These are inputs for checking the grader before run 1, not benchmark results. Each patch applies to HotROD commit
 `b16178651580a8ba3ceb45ac7c59f4579611b0b3` on its own.
 
-- `t1.patch`: hand-written Task 1 solution. It changes the Go JSON contract and updates the React consumers.
-- `t2.patch`: hand-written Task 2 solution. It computes the fare in the driver notification, stores ride history in
+- `t1.patch`: Task 1 reference solution. It changes the Go JSON contract and updates the React consumers.
+- `t2.patch`: Task 2 reference solution. It computes the fare in the driver notification, stores ride history in
   MySQL, adds the location endpoints and frontend proxy, and adds the React history table and fare display.
 - `check08-fare-in-countdown-only.patch`: a Task 2 diff from a smoke run that shows the fare in the ETA countdown but
-  not in the arrival message. The prompt asks only for the countdown, so it must pass.
+  not in the arrival message. This checks that the grader accepts the countdown-only fare display the prompt asks for.
 
 | Control | Input | Expected |
 | --- | --- | --- |

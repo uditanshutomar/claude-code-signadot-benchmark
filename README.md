@@ -13,7 +13,7 @@ The protocol was committed before the first run, at `500a28f`. [PROTOCOL.md](PRO
 | Cost per run, median | $0.49 | $0.69 | $1.33 | $1.56 |
 | Human hand-offs | 0 | 0 | 0 | 0 |
 
-- Every change worked, on both sides. No run declared done on a broken change.
+- All 40 changes passed the grader. No run declared done on a broken change.
 - On Task 1, the Signadot runs reached a verified change faster. We did not find a clear Task 2 timing difference.
 - On Task 1, 9 of the 10 runs without Signadot never saw a ride complete in their own testing, because HotROD's driver waits for Signadot's route server. Every Signadot run saw one complete.
 - The Signadot runs cost more, and their model calls generally carried more context.
@@ -31,7 +31,7 @@ Every prompt ends with the same instruction: "Validate your work end to end, inc
 
 ## How a run works
 
-`./run-one.sh <task> <arm> <rep>` runs one session from start to finish:
+`./run-one.sh <task> <arm> <rep> --mode primary --execute` runs one session from start to finish. Without `--execute` it prints the plan and stops.
 
 1. It creates a fresh Docker Sandboxes worker, resets HotROD to the pinned commit, drops the `ride_history` table and deletes any Signadot sandboxes left from the previous run.
 2. On the Signadot side, it starts `signadot local connect` and waits until `signadot local status` passes.
@@ -46,7 +46,7 @@ Every session sends its telemetry to CodeTelemetry, labelled with the side, the 
 
 It builds the diff at the pinned HotROD commit, deploys the result into a Signadot sandbox with its own database, and checks the task through the API. Then it drives the web UI with Playwright: it picks locations by name, dispatches a ride and waits for the driver to arrive. For Task 2 it also checks the fare in the countdown and the ride in the history table.
 
-Before the first run, the grader failed the unmodified app on both tasks and passed a hand-written solution for each. Those checks are in [calibration.json](calibration.json), and the solutions are in [reference-solutions/](reference-solutions/). [grader/README.md](grader/README.md) covers the details.
+Before the first run, the grader failed the unmodified app on both tasks and passed a reference solution for each. Those checks are in [calibration.json](calibration.json), and the solutions are in [reference-solutions/](reference-solutions/). [grader/README.md](grader/README.md) covers the details.
 
 ## What's in this repository
 
@@ -59,14 +59,14 @@ Before the first run, the grader failed the unmodified app on both tasks and pas
 | [prompts/](prompts/) | The four prompts: two tasks, two sides |
 | `run-one.sh`, [scripts/](scripts/) | The headless runner: worker setup and reset, one run with its rework rounds, transcript review and export |
 | `grade.sh`, [grader/](grader/) | The grader and its tests |
-| [reference-solutions/](reference-solutions/) | Hand-written solutions used to check the grader |
+| [reference-solutions/](reference-solutions/) | Reference solutions used to check the grader |
 | [calibration.json](calibration.json) | The grader check from before the first run |
 | [config/](config/) | Pinned versions, model settings and the HotROD overlay |
 | [source-harness/](source-harness/) | The interactive harness from [signadot/examples](https://github.com/signadot/examples/tree/main/closed-loop-comparison) that this one builds on |
 
 ## Run it yourself
 
-The original runs used an Apple-silicon Mac, so the workers are Linux ARM64. On other hardware, use the matching Signadot CLI archive and record your own image and template IDs in `config/pins.json`. Values in angle brackets below are ones you record.
+These steps reproduce the original setup on an Apple-silicon Mac, with Linux ARM64 workers. The worker reset, the grader's build and the worker's Chromium path assume ARM64, so other hardware needs changes in `scripts/reset_worker.py`, `grader/grade.py` and `scripts/configure-worker.sh`. Values in angle brackets below are ones you record.
 
 ### Prerequisites
 
@@ -105,22 +105,34 @@ Download `signadot-cli_mcp_linux_arm64.tar.gz` and `checksums.txt` from the [Sig
 Create the worker template:
 
 ```bash
-sbx create --name ctbench-setup-a --skills off claude <empty directory>
+sbx create --name ctbench-setup-a --skills off \
+  --deny-network codetelemetry.com:443 --deny-network '**.codetelemetry.com:443' \
+  claude <empty directory>
 sbx exec -i ctbench-setup-a bash -s < scripts/prepare-worker.sh
 sbx template save ctbench-setup-a ctbench-common:20261013
 ```
 
-Create the two grader workers from it. The build worker has no credentials:
+Create the two grader workers from it. Telemetry stays blocked on both, and the setup check below fails if it is not. The build worker has no credentials:
 
 ```bash
-sbx create --name ctbench-grader-build --template ctbench-common:20261013 --skills off claude work/grading-source
-sbx create --name ctbench-setup-b --template ctbench-common:20261013 --skills off claude work/worker-b
+sbx create --name ctbench-grader-build --template ctbench-common:20261013 --skills off \
+  --deny-network codetelemetry.com:443 --deny-network '**.codetelemetry.com:443' \
+  claude work/grading-source
+sbx create --name ctbench-setup-b --template ctbench-common:20261013 --skills off \
+  --deny-network codetelemetry.com:443 --deny-network '**.codetelemetry.com:443' \
+  claude work/worker-b
 ```
 
 In `ctbench-setup-b`, extract the Signadot CLI into `/usr/local/bin` and write `~/.signadot/config.yaml` with your `org` and `api_key`. Then connect it to the cluster:
 
 ```bash
 scripts/start-setup-worker.sh b
+```
+
+When setup is done, stop the setup workers. The runner refuses to reset shared data while any `ctbench-` worker is running, and the grader starts the ones it needs:
+
+```bash
+sbx stop ctbench-setup-a ctbench-setup-b ctbench-grader-build
 ```
 
 Clone the agent skills at the pinned commit, and install the browser the grader uses:
@@ -143,6 +155,8 @@ Create these files with mode `0600`. They are ignored by git:
 ### Freeze the protocol and run
 
 Before the benchmark runs, do one smoke run of each task on each side. Approve it the same way as a benchmark run (below), with `"mode": "telemetry-smoke"`, and start it with `./run-one.sh t1 a 1 --mode telemetry-smoke --execute`. Each smoke run writes `runs/<id>/run.json`.
+
+Use the smoke runs to confirm two things before you freeze. First, that every tool call and model call of a smoke session appears in CodeTelemetry. Second, that a resumed session's reported cost includes the first round, which is why the runner records rework cost as the difference between rounds. Set `telemetry_delivery_verified` and `cost_resume_reconciled` to `true` only once you have checked them.
 
 Commit your setup, then record the freeze in `private/protocol-freeze.json`. `source_hashes` is the dictionary that `source_hashes()` in `scripts/protocol.py` returns, and `smoke_evidence` points at the four smoke runs. The runner refuses to start if the frozen files have changed since that commit:
 
@@ -169,13 +183,28 @@ Without `--execute`, the runner prints its plan and stops.
 
 ### Review and export
 
-Review each transcript with `scripts/annotate.py`, which records what the agent declared and saw, with line references. Then export the runs, with credentials and home paths removed:
+Review each transcript and record what you found in a small JSON file, one entry per round, with line references as evidence:
+
+```json
+{"0": {"task_present": true, "declared_done": true, "reported_unfixed_break": false,
+       "skill_invoked": true, "cli_fallback": false, "services_touched": ["frontend", "location"],
+       "first_break_seen_utc": "",
+       "evidence": "round-0/transcript.jsonl:255 closing summary; round-0/transcript.jsonl:5 Skill signadot-validate"}}
+```
+
+Apply it to the run and its ledger row:
+
+```bash
+python3 scripts/annotate.py <run_id> <observations.json>
+```
+
+Then export the runs. The export removes the credentials it knows about, GitHub tokens, and your home directory from paths:
 
 ```bash
 python3 scripts/export_results.py
 ```
 
-Look through `results/` before you commit it.
+It cannot recognise every kind of secret, so search `results/` yourself before you commit it.
 
 ## Check the code
 

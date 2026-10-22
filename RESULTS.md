@@ -4,7 +4,9 @@ The protocol was committed at `500a28f` before the first run. The 20 primary run
 
 ## Headline
 
-Across 10 runs per side on two tasks, Claude Code with a local Docker stack declared done on a broken change 0% of the time; with Signadot, 0%. Reaching a working change took 9.7 vs 7.5 minutes on Task 1 and 14.6 vs 13.7 minutes on Task 2 (medians), cost $0.49 vs $0.69 and $1.33 vs $1.56, and needed 0 vs 0 human hand-offs.
+All 40 changes passed the grader on the first attempt. Signadot runs were faster on Task 1 and had higher estimated API costs on both tasks. No run needed a rework round.
+
+In the brief's format: across 10 runs per side on two tasks, Claude Code with a local Docker stack declared done on a broken change 0% of the time; with Signadot, 0%. Reaching a working change took 9.7 vs 7.5 minutes on Task 1 and 14.6 vs 13.7 minutes on Task 2 (medians), cost $0.49 vs $0.69 and $1.33 vs $1.56, and needed 0 vs 0 human hand-offs.
 
 | | Task 1, without Signadot | Task 1, with Signadot | Task 2, without Signadot | Task 2, with Signadot |
 | --- | --- | --- | --- | --- |
