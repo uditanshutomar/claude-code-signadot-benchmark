@@ -13,7 +13,7 @@
   "session_id": "b20f3f24-6772-4fe4-97bf-0b690086c2d0",
   "initial_verdict": "VERIFIED_CORRECT",
   "final_verdict": "VERIFIED_CORRECT",
-  "notes": "primary; costs are API-equivalent; transcript observations require review",
+  "notes": "primary; costs are API-equivalent; transcript reviewed",
   "rework_rounds": 0,
   "duration_ms": 713687,
   "cost_usd": 1.3922048000000007,
