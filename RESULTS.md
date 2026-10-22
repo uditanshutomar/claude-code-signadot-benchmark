@@ -36,7 +36,7 @@ On Task 2, 12 runs (7 without Signadot, 5 with) hit a compile error or a failing
 
 ## Context per call
 
-The Signadot runs made slightly fewer model calls, and their calls generally carried more context. Both sides started at about 16,500 tokens, and the Signadot agent went on to read the skill's guidance and the Signadot tool output. Two Signadot sessions (Task 2 reps 2 and 4) compacted their context partway through.
+The Signadot runs made fewer model calls, and their calls generally carried more context. Both sides started at about 16,500 tokens, and the Signadot agent went on to read the skill's guidance and the Signadot tool output. Two Signadot sessions (Task 2 reps 2 and 4) compacted their context partway through.
 
 | Median per run | Task 1, without | Task 1, with | Task 2, without | Task 2, with |
 | --- | --- | --- | --- | --- |
@@ -45,7 +45,7 @@ The Signadot runs made slightly fewer model calls, and their calls generally car
 
 ## Telemetry
 
-Every session is in CodeTelemetry, labelled by side, task and phase, and each ledger row carries its session ID. All 40 sessions delivered their telemetry, with no failed exports; each run's delivery log is in `results/<run_id>/round-0/telemetry-exports.jsonl`. For the 20 primary sessions, [results/telemetry-check.json](results/telemetry-check.json) compares CodeTelemetry with the transcripts: tool-call counts match exactly, and hosted model-call counts are one or two higher per session, from background requests. It compares counts, not individual request IDs.
+Every session is in CodeTelemetry, labelled by side, task and phase, and each ledger row carries its session ID. All 40 sessions exported their telemetry with no failed export requests; each run's delivery log is in `results/<run_id>/round-0/telemetry-exports.jsonl`. For the 20 primary sessions, [results/telemetry-check.json](results/telemetry-check.json) compares CodeTelemetry with the transcripts: tool-call counts match exactly, and hosted model-call counts are one or two higher per session, from background requests. It compares counts, not individual request IDs.
 
 ## Scope
 
