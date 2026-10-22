@@ -47,6 +47,20 @@ The Signadot runs made fewer model calls, and their calls generally carried more
 
 Every session is in CodeTelemetry, labelled by side, task and phase, and each ledger row carries its session ID. All 40 sessions exported their telemetry with no failed export requests; each run's delivery log is in `results/<run_id>/round-0/telemetry-exports.jsonl`. For the 20 primary sessions, [results/telemetry-check.json](results/telemetry-check.json) compares CodeTelemetry with the transcripts: tool-call counts match exactly, and hosted model-call counts are one or two higher per session, from background requests. It compares counts, not individual request IDs.
 
+## What this benchmark did not show
+
+- **A correctness difference.** Neither side shipped a broken change, so the brief's headline comparison is 0% against 0%. The brief expected the Signadot side to be slower to "done"; on Task 1 it was faster.
+- **Every check on the latest telemetry.** CodeTelemetry was compared with the transcripts for the 20 primary sessions. The 20 extension sessions exported with no failed requests but have not been compared yet.
+- **Other models, efforts or workflows.** Every run used one model at one effort level. The runs did not open pull requests or wait on CI, and neither task depends on a service in another repository or on a change being made in parallel. Those are natural next experiments.
+
+Where the setup differs from the brief:
+
+- The harness started from the public `closed-loop-comparison` folder in `signadot/examples`, and the headless runner is `run-one.sh` with Python modules instead of a modified `sbx-run.sh`.
+- The runs used the author's own Signadot organization.
+- The Signadot prompt also names the namespace, because the cluster ran a second, unrelated HotROD and the skill otherwise stopped to ask which one to use.
+- The grader deploys all four HotROD services, not only the ones a diff touches.
+- Telemetry goes through a small relay inside each worker, because direct export through the sandbox proxy dropped batches.
+
 ## Scope
 
 One model at one effort level, one application on a local minikube cluster, and two tasks. Both sides were told to validate end to end and fix anything their change broke, and both had Docker and a browser.
